@@ -130,37 +130,52 @@ class Classifier(nn.Module):
             nn.Conv2d(3, 64, 3, 1, 1),  # [64, 128, 128]
             nn.BatchNorm2d(64),
             nn.ReLU(),
+            nn.Conv2d(64, 64, 3, 1, 1),  # [64, 128, 128]
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),      # [64, 64, 64]
 
             nn.Conv2d(64, 128, 3, 1, 1),  # [128, 64, 64]
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),      # [128, 32, 32]
+            nn.Conv2d(128, 128, 3, 1, 1),  # [128, 64, 64]
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),              # [128, 32, 32]
 
             nn.Conv2d(128, 256, 3, 1, 1),  # [256, 32, 32]
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),      # [256, 16, 16]
+            nn.Conv2d(256, 256, 3, 1, 1),  # [256, 32, 32]
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),       # [256, 16, 16]
 
             nn.Conv2d(256, 512, 3, 1, 1),  # [512, 16, 16]
             nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),       # [512, 8, 8]
+            nn.Conv2d(512, 512, 3, 1, 1),  # [512, 16, 16]
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),      # [512, 8, 8]
 
             nn.Conv2d(512, 512, 3, 1, 1),  # [512, 8, 8]
             nn.BatchNorm2d(512),
             nn.ReLU(),
+
+            nn.Conv2d(512, 256, 3, 1, 1),  # [512, 8, 8]
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),       # [512, 4, 4]
         )
         self.fc = nn.Sequential(
-            nn.Linear(512*4*4, 1024),
+            nn.Linear(256*4*4, 1024),
             nn.Dropout(p=0.5),
             nn.ReLU(),
             nn.Linear(1024, 512),
             nn.Dropout(p=0.5),
             nn.ReLU(),
             nn.Linear(512, 11),
-
 
         )
 
@@ -185,7 +200,7 @@ model_best = Classifier().cuda()
 loss = nn.CrossEntropyLoss()  # 因為是 classification task，所以 loss 使用 CrossEntropyLoss
 optimizer = torch.optim.Adam(
     model_best.parameters(), lr=0.001)  # optimizer 使用 Adam
-num_epoch = 100
+num_epoch = 87
 
 for epoch in range(num_epoch):
     epoch_start_time = time.time()
@@ -217,35 +232,35 @@ torch.save(model_best.state_dict(), "CNN_model.h5")
 """# Testing
 利用剛剛 train 好的 model 進行 prediction
 """
-# # Load model
-# model_best = Classifier().cuda()
-# model_best.load_state_dict(torch.load("CNN_model.h5"))
+# Load model
+model_best = Classifier().cuda()
+model_best.load_state_dict(torch.load("CNN_model.h5"))
 
 
-# test_set = ImgDataset(test_x, transform=test_transform)
-# test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
+test_set = ImgDataset(test_x, transform=test_transform)
+test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
-# ''' predict'''
-# model_best.eval()
-# prediction = []
-# with torch.no_grad():
-#     for i, data in enumerate(test_loader):
-#         test_pred = model_best(data.cuda())
-#         test_label = np.argmax(test_pred.cpu().data.numpy(), axis=1)
-#         for y in test_label:
-#             prediction.append(y)
+''' predict'''
+model_best.eval()
+prediction = []
+with torch.no_grad():
+    for i, data in enumerate(test_loader):
+        test_pred = model_best(data.cuda())
+        test_label = np.argmax(test_pred.cpu().data.numpy(), axis=1)
+        for y in test_label:
+            prediction.append(y)
 
 # 將結果寫入 csv 檔
-# pred_file = sys.argv[2]
-# with open(pred_file, 'w') as f:
-#     f.write('Id,Category\n')
-#     for i, y in enumerate(prediction):
-#         f.write('{},{}\n'.format(i, y))
+pred_file = sys.argv[2]
+with open(pred_file, 'w') as f:
+    f.write('Id,Category\n')
+    for i, y in enumerate(prediction):
+        f.write('{},{}\n'.format(i, y))
 
-# plt.plot(accuracy, 'b', label="train accuracy")
-# plt.plot(val_accuracy, 'r', label="validation accuracy")
+plt.plot(accuracy, 'b', label="train accuracy")
+plt.plot(val_accuracy, 'r', label="validation accuracy")
 
-# plt.xlabel("epoch time")
-# plt.ylabel("accuracy")
-# plt.show()
+plt.xlabel("epoch time")
+plt.ylabel("accuracy")
+plt.show()

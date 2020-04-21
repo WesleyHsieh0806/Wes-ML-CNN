@@ -103,37 +103,52 @@ class Classifier(nn.Module):
             nn.Conv2d(3, 64, 3, 1, 1),  # [64, 128, 128]
             nn.BatchNorm2d(64),
             nn.ReLU(),
+            nn.Conv2d(64, 64, 3, 1, 1),  # [64, 128, 128]
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),      # [64, 64, 64]
 
             nn.Conv2d(64, 128, 3, 1, 1),  # [128, 64, 64]
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),      # [128, 32, 32]
+            nn.Conv2d(128, 128, 3, 1, 1),  # [128, 64, 64]
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),              # [128, 32, 32]
 
             nn.Conv2d(128, 256, 3, 1, 1),  # [256, 32, 32]
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),      # [256, 16, 16]
+            nn.Conv2d(256, 256, 3, 1, 1),  # [256, 32, 32]
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),       # [256, 16, 16]
 
             nn.Conv2d(256, 512, 3, 1, 1),  # [512, 16, 16]
             nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),       # [512, 8, 8]
+            nn.Conv2d(512, 512, 3, 1, 1),  # [512, 16, 16]
+            nn.BatchNorm2d(512),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2, 0),      # [512, 8, 8]
 
             nn.Conv2d(512, 512, 3, 1, 1),  # [512, 8, 8]
             nn.BatchNorm2d(512),
             nn.ReLU(),
+
+            nn.Conv2d(512, 256, 3, 1, 1),  # [512, 8, 8]
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),       # [512, 4, 4]
         )
         self.fc = nn.Sequential(
-            nn.Linear(512*4*4, 1024),
+            nn.Linear(256*4*4, 1024),
             nn.Dropout(p=0.5),
             nn.ReLU(),
             nn.Linear(1024, 512),
             nn.Dropout(p=0.5),
             nn.ReLU(),
             nn.Linear(512, 11),
-
 
         )
 
@@ -146,8 +161,8 @@ class Classifier(nn.Module):
 accuracy = []
 val_accuracy = []
 
-wget.download(
-    'https://github.com/WesleyHsieh0806/hello/releases/download/0.0.0/CNN_model.h5', out='CNN_model.h5')
+# wget.download(
+#     'https://github.com/WesleyHsieh0806/hello/releases/download/0.0.0/CNN_model.h5', out='CNN_model.h5')
 # Load model
 model_best = Classifier().cuda()
 model_best.load_state_dict(torch.load("CNN_model.h5"))
