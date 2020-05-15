@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import os
 import random
-import wget
+# import wget
 
 torch.manual_seed(0)
 np.random.seed(0)
